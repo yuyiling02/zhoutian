@@ -93,7 +93,7 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
         {/* 始终显示的底部信息（移动端） */}
         <div className="absolute bottom-0 left-0 right-0 p-4 
           bg-gradient-to-r from-[#4FACFE]/90 to-[#9D50BB]/90
-          backdrop-blur-sm md:hidden rounded-b-3xl">
+          backdrop-blur-sm sm:hidden rounded-b-3xl">
           <div className="flex items-center gap-2">
             <Sparkles className="size-4 text-white" />
             <h3 className="text-white text-sm font-bold truncate">
