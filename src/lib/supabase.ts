@@ -88,7 +88,9 @@ export async function uploadFile(
   file: File,
   folder: 'models' | 'thumbnails',
 ): Promise<string> {
-  const fileName = `${folder}/${Date.now()}_${file.name}`;
+  const extension = file.name.split('.').pop() || '';
+  const safeFileName = `${Date.now()}.${extension}`;
+  const fileName = `${folder}/${safeFileName}`;
   const { error: uploadError } = await supabase.storage
     .from('artworks')
     .upload(fileName, file, { upsert: true });

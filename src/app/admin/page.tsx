@@ -11,6 +11,7 @@ import { Artwork, ArtworkConfig } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { QRCodeButton } from '@/components/QrcodeButton';
 import { fetchArtworks, addArtwork, updateArtwork, deleteArtwork, uploadFile, deleteStorageFile } from '@/lib/supabase';
+import config from '@/../public/config.json';
 
 const ADMIN_PASSWORD = 'admin123';
 
@@ -51,11 +52,18 @@ export default function AdminPage() {
     setLoading(true);
     try {
       const data = await fetchArtworks();
-      setArtworks(data);
+      if (data && data.length > 0) {
+        setArtworks(data);
+      } else {
+        setArtworks(config);
+        setMsg('⚠️ 数据库为空，显示默认作品');
+      }
     } catch {
-      setMsg('❌ 无法连接到数据库');
+      setArtworks(config);
+      setMsg('⚠️ 无法连接到数据库，显示默认作品');
     } finally {
       setLoading(false);
+      setTimeout(() => setMsg(''), 4000);
     }
   };
 

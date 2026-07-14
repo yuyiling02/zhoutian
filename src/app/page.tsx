@@ -35,12 +35,13 @@ export default function Home() {
     setLoading(true);
     try {
       const data = await fetchArtworks();
-      if (data.length > 0) {
+      if (data && data.length > 0) {
         setArtworks(data);
+      } else {
+        setArtworks(config);
       }
-      // 如果 Supabase 没有数据，保留 config.json 的默认数据
     } catch {
-      // 出错时保持 config.json 数据
+      setArtworks(config);
     } finally {
       setLoading(false);
     }

@@ -14,13 +14,12 @@ export async function generateStaticParams() {
 }
 
 interface ArtworkDetailPageProps {
-  params: {
-    id: string;
-  };
+  params: Promise<{ id: string }>;
 }
 
-export default function ArtworkDetailPage({ params }: ArtworkDetailPageProps) {
-  const id = Number(params.id);
+export default async function ArtworkDetailPage({ params }: ArtworkDetailPageProps) {
+  const { id: idStr } = await params;
+  const id = Number(idStr);
   const artwork = config.find((item) => item.id === id) as Artwork;
 
   return <ArtworkDetailClient initialArtwork={artwork} artworkId={id} />;
