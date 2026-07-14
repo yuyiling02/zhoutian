@@ -9,35 +9,29 @@ import { ArrowLeft, Share2, Sparkles, Check, RotateCcw, RefreshCw } from 'lucide
 import { fetchArtworkById } from '@/lib/supabase';
 
 interface ArtworkDetailClientProps {
-  initialArtwork: Artwork | undefined;
   artworkId: number;
 }
 
-export default function ArtworkDetailClient({ initialArtwork, artworkId }: ArtworkDetailClientProps) {
-  const [artwork, setArtwork] = useState<Artwork | undefined>(initialArtwork);
+export default function ArtworkDetailClient({ artworkId }: ArtworkDetailClientProps) {
+  const [artwork, setArtwork] = useState<Artwork | undefined>();
   const [shareSuccess, setShareSuccess] = useState(false);
-  const [loading, setLoading] = useState(!initialArtwork);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (initialArtwork) {
-      setLoading(false);
-      return;
-    }
-
     const loadArtwork = async () => {
       setLoading(true);
       try {
         const data = await fetchArtworkById(artworkId);
         setArtwork(data);
       } catch {
-        // 保持 undefined，显示「作品不存在」
+        setArtwork(undefined);
       } finally {
         setLoading(false);
       }
     };
 
     loadArtwork();
-  }, [artworkId, initialArtwork]);
+  }, [artworkId]);
 
   const handleShare = async () => {
     const url = window.location.href;

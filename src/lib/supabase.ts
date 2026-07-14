@@ -5,6 +5,14 @@ const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+interface ArtworkRow {
+  id: number;
+  title: string;
+  author: string | null;
+  model_file: string;
+  thumbnail: string | null;
+}
+
 /** 从 Supabase 获取所有作品 */
 export async function fetchArtworks() {
   const { data, error } = await supabase
@@ -79,8 +87,15 @@ export async function updateArtwork(
 
 /** 删除作品 */
 export async function deleteArtwork(id: number) {
-  const { error } = await supabase.from('artworks').delete().eq('id', id);
+  const { data, error } = await supabase
+    .from('artworks')
+    .delete()
+    .eq('id', id)
+    .select('id');
   if (error) throw error;
+  if (!data || data.length === 0) {
+    throw new Error('数据库没有删除任何记录，请检查删除权限');
+  }
 }
 
 /** 上传文件到 Supabase Storage，返回公开 URL */
@@ -110,11 +125,12 @@ export async function deleteStorageFile(url: string) {
   const prefix = `${supabaseUrl}/storage/v1/object/public/artworks/`;
   if (!url.startsWith(prefix)) return;
   const filePath = url.slice(prefix.length);
-  await supabase.storage.from('artworks').remove([filePath]);
+  const { error } = await supabase.storage.from('artworks').remove([filePath]);
+  if (error) throw error;
 }
 
 // 数据库行 → Artwork 类型映射
-function mapArtwork(data: any): import('./types').Artwork {
+function mapArtwork(data: ArtworkRow): import('./types').Artwork {
   return {
     id: data.id,
     title: data.title,

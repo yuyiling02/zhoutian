@@ -1,16 +1,12 @@
-import { Artwork } from '@/lib/types';
 import ArtworkDetailClient from './ArtworkDetailClient';
 
-import config from '@/../public/config.json';
-
 export async function generateStaticParams() {
-  // 预生成足够多的 ID（1-50），实际数据由客户端从 Supabase 获取
-  const ids = new Set<number>();
-  config.forEach((a) => ids.add(a.id));
+  // 静态托管需要预生成路由，作品内容始终由客户端从 Supabase 实时获取。
+  const ids: number[] = [];
   for (let i = 1; i <= 50; i++) {
-    ids.add(i);
+    ids.push(i);
   }
-  return Array.from(ids).map((id) => ({ id: id.toString() }));
+  return ids.map((id) => ({ id: id.toString() }));
 }
 
 interface ArtworkDetailPageProps {
@@ -20,7 +16,6 @@ interface ArtworkDetailPageProps {
 export default async function ArtworkDetailPage({ params }: ArtworkDetailPageProps) {
   const { id: idStr } = await params;
   const id = Number(idStr);
-  const artwork = config.find((item) => item.id === id) as Artwork;
 
-  return <ArtworkDetailClient initialArtwork={artwork} artworkId={id} />;
+  return <ArtworkDetailClient artworkId={id} />;
 }

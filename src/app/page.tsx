@@ -18,11 +18,9 @@ import { ModelViewer } from '@/components/ModelViewer';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { fetchArtworks } from '@/lib/supabase';
 
-import config from '@/../public/config.json';
-
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [artworks, setArtworks] = useState<ArtworkConfig>(config);
+  const [artworks, setArtworks] = useState<ArtworkConfig>([]);
   const [loading, setLoading] = useState(true);
   const [selectedArtwork, setSelectedArtwork] = useState<Artwork | null>(null);
   const [shareSuccess, setShareSuccess] = useState(false);
@@ -35,13 +33,9 @@ export default function Home() {
     setLoading(true);
     try {
       const data = await fetchArtworks();
-      if (data && data.length > 0) {
-        setArtworks(data);
-      } else {
-        setArtworks(config);
-      }
+      setArtworks(data);
     } catch {
-      setArtworks(config);
+      setArtworks([]);
     } finally {
       setLoading(false);
     }

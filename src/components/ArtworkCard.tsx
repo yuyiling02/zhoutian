@@ -1,16 +1,19 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { forwardRef, useEffect, useState, type ComponentPropsWithoutRef } from 'react';
 import Image from 'next/image';
 import { Artwork } from '@/lib/types';
 import { Sparkles } from 'lucide-react';
 import { preloadModel } from '@/components/ModelViewer';
 
-interface ArtworkCardProps {
+interface ArtworkCardProps extends ComponentPropsWithoutRef<'button'> {
   artwork: Artwork;
 }
 
-export function ArtworkCard({ artwork }: ArtworkCardProps) {
+export const ArtworkCard = forwardRef<HTMLButtonElement, ArtworkCardProps>(function ArtworkCard(
+  { artwork, className, ...buttonProps },
+  ref,
+) {
   const [imageError, setImageError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   
@@ -21,8 +24,11 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
   }, [isHovered, artwork.modelFile]);
 
   return (
-    <div
-      className="group block cursor-pointer"
+    <button
+      ref={ref}
+      type="button"
+      className={`group block w-full cursor-pointer text-left ${className ?? ''}`}
+      {...buttonProps}
     >
       <div
         className="relative aspect-square w-full overflow-hidden rounded-3xl 
@@ -33,7 +39,7 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {!imageError ? (
+        {artwork.thumbnail && !imageError ? (
           <Image
             src={artwork.thumbnail}
             alt={`${artwork.title}`}
@@ -89,6 +95,6 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
           <div className="w-2 h-2 rounded-full bg-blue-300 animate-pulse delay-200" />
         </div>
       </div>
-    </div>
+    </button>
   );
-}
+});
