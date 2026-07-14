@@ -26,26 +26,23 @@ export function SearchBar({ onSearch, initialValue = '' }: SearchBarProps) {
   return (
     <form onSubmit={handleSubmit} className="relative w-full max-w-lg mx-auto">
       <div className="relative group">
-        {/* 搜索图标 */}
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#4FACFE] transition-all duration-300 group-focus-within:text-[#9D50BB]" />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/70 transition-all duration-300 group-focus-within:text-white" />
         
-        {/* 输入框 */}
         <Input
           type="text"
           placeholder="搜索作品名称或作者..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="pl-12 pr-12 h-14 bg-white/85 backdrop-blur-sm 
-            border-2 border-transparent 
-            focus:border-[#4FACFE]/50 focus:ring-[#4FACFE]/20
-            text-[#2D3748] placeholder:text-[#718096]/70
+          className="pl-12 pr-12 h-14 bg-white/20 backdrop-blur-md 
+            border-2 border-white/20 
+            focus:border-white/50 focus:ring-white/20
+            text-white placeholder:text-white/50
             rounded-2xl text-base
-            shadow-lg shadow-[#4FACFE]/5
+            shadow-lg shadow-black/10
             transition-all duration-300
-            hover:shadow-xl hover:shadow-[#9D50BB]/10"
+            hover:shadow-xl hover:shadow-black/15"
         />
         
-        {/* 清除按钮 */}
         {query && (
           <Button
             type="button"
@@ -53,18 +50,17 @@ export function SearchBar({ onSearch, initialValue = '' }: SearchBarProps) {
             size="sm"
             onClick={handleClear}
             className="absolute right-2 top-1/2 -translate-y-1/2 h-10 w-10 p-0 
-              hover:bg-[#F56565]/10 rounded-xl
+              hover:bg-white/10 rounded-xl
               transition-all duration-200"
           >
-            <X className="h-5 w-5 text-[#718096] hover:text-[#F56565]" />
+            <X className="h-5 w-5 text-white/60 hover:text-white" />
           </Button>
         )}
         
-        {/* 渐变边框效果 */}
         <div className="absolute inset-0 rounded-2xl pointer-events-none opacity-0 
           group-focus-within:opacity-100 transition-opacity duration-300"
           style={{
-            background: 'linear-gradient(90deg, #4FACFE 0%, #9D50BB 100%)',
+            background: 'linear-gradient(90deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 100%)',
             padding: '2px',
             WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
             WebkitMaskComposite: 'xor',
