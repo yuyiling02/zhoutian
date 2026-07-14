@@ -6,9 +6,6 @@ on:
       - main
   workflow_dispatch:
 
-permissions:
-  contents: write
-
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -33,10 +30,11 @@ jobs:
       - name: Create .nojekyll
         run: touch ./out/.nojekyll
 
-      - name: Deploy to gh-pages
+      - name: Deploy to yuyiling02.github.io
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./out
           force_orphan: true
           enable_jekyll: false
+          external_repository: yuyiling02/yuyiling02.github.io
