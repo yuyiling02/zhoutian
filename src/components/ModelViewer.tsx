@@ -214,7 +214,9 @@ export function ModelViewer({ modelUrl }: ModelViewerProps) {
         },
         (err) => {
           console.error('Error loading model:', err);
-          setError('模型加载失败，请检查文件是否存在');
+          // 如果是 blob URL 且加载失败（页面刷新后 blob 失效），给出更具体的提示
+          const isStaleBlob = modelUrl.startsWith('blob:');
+          setError(isStaleBlob ? '模型文件尚未完成上传，请稍后刷新页面重试' : '模型加载失败，请检查文件是否存在');
           setLoading(false);
         }
       );

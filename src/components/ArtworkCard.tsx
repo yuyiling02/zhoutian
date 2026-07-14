@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
 import { Artwork } from '@/lib/types';
 import { Sparkles } from 'lucide-react';
 import { preloadModel } from '@/components/ModelViewer';
@@ -22,7 +21,9 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
   }, [isHovered, artwork.modelFile]);
 
   return (
-    <Link href={`/artwork/${artwork.id}`} className="group block">
+    <div
+      className="group block cursor-pointer"
+    >
       <div
         className="relative aspect-square w-full overflow-hidden rounded-3xl 
           bg-white/20 backdrop-blur-md border border-white/20
@@ -88,6 +89,6 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
           <div className="w-2 h-2 rounded-full bg-blue-300 animate-pulse delay-200" />
         </div>
       </div>
-    </Link>
+    </div>
   );
 }

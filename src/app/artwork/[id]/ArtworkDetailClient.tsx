@@ -1,23 +1,48 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ModelViewer } from '@/components/ModelViewer';
 import { Artwork } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Share2, Sparkles, Check, RotateCcw, ZoomIn, ZoomOut } from 'lucide-react';
+import { ArrowLeft, Share2, Sparkles, Check, RotateCcw, RefreshCw } from 'lucide-react';
+import { fetchArtworkById } from '@/lib/supabase';
 
 interface ArtworkDetailClientProps {
-  artwork: Artwork | undefined;
+  initialArtwork: Artwork | undefined;
+  artworkId: number;
 }
 
-export default function ArtworkDetailClient({ artwork }: ArtworkDetailClientProps) {
+export default function ArtworkDetailClient({ initialArtwork, artworkId }: ArtworkDetailClientProps) {
+  const [artwork, setArtwork] = useState<Artwork | undefined>(initialArtwork);
   const [shareSuccess, setShareSuccess] = useState(false);
+  const [loading, setLoading] = useState(!initialArtwork);
+
+  useEffect(() => {
+    if (initialArtwork) {
+      setLoading(false);
+      return;
+    }
+
+    const loadArtwork = async () => {
+      setLoading(true);
+      try {
+        const data = await fetchArtworkById(artworkId);
+        setArtwork(data);
+      } catch {
+        // 保持 undefined，显示「作品不存在」
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadArtwork();
+  }, [artworkId, initialArtwork]);
 
   const handleShare = async () => {
     const url = window.location.href;
     const title = artwork ? `${artwork.author} - ${artwork.title}` : '3D魔法作品展示';
-    
+
     if (navigator.share) {
       try {
         await navigator.share({
@@ -50,6 +75,20 @@ export default function ArtworkDetailClient({ artwork }: ArtworkDetailClientProp
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center"
+        style={{
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
+        }}>
+        <div className="text-center">
+          <RefreshCw className="h-8 w-8 mx-auto mb-4 text-white animate-spin" />
+          <div className="text-white text-lg">加载中...</div>
+        </div>
+      </div>
+    );
+  }
+
   if (!artwork) {
     return (
       <div className="min-h-screen flex items-center justify-center"
@@ -71,7 +110,7 @@ export default function ArtworkDetailClient({ artwork }: ArtworkDetailClientProp
           </div>
           <p className="text-white font-semibold text-lg">作品不存在</p>
           <Link href="/">
-            <Button variant="outline" 
+            <Button variant="outline"
               className="mt-6 px-6 py-3 rounded-xl
                 border-2 border-white/30 hover:border-white
                 hover:bg-white/10 text-white
@@ -103,8 +142,8 @@ export default function ArtworkDetailClient({ artwork }: ArtworkDetailClientProp
       <header className="sticky top-0 z-50 backdrop-blur-md bg-white/10 border-b border-white/10">
         <div className="max-w-6xl mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="p-2 rounded-xl bg-white/20 backdrop-blur-sm 
-              border border-white/20 group-hover:bg-white/30 
+            <div className="p-2 rounded-xl bg-white/20 backdrop-blur-sm
+              border border-white/20 group-hover:bg-white/30
               transition-all duration-300">
               <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
             </div>
@@ -112,7 +151,7 @@ export default function ArtworkDetailClient({ artwork }: ArtworkDetailClientProp
               返回列表
             </span>
           </Link>
-          
+
           <Button
             variant="ghost"
             size="sm"
@@ -152,15 +191,15 @@ export default function ArtworkDetailClient({ artwork }: ArtworkDetailClientProp
           </p>
         </div>
 
-        <div className="relative w-full aspect-square sm:aspect-[4/3] md:aspect-[16/10] lg:aspect-[16/9] 
-          max-h-[400px] sm:max-h-[500px] lg:max-h-[600px] 
+        <div className="relative w-full aspect-square sm:aspect-[4/3] md:aspect-[16/10] lg:aspect-[16/9]
+          max-h-[400px] sm:max-h-[500px] lg:max-h-[600px]
           rounded-3xl overflow-hidden
           border-2 border-white/20"
           style={{
             boxShadow: '0 20px 50px -10px rgba(0,0,0,0.3), 0 0 30px rgba(255,255,255,0.1)'
           }}>
           <ModelViewer modelUrl={artwork.modelFile} />
-          
+
           <div className="absolute bottom-3 right-3 flex gap-2">
             <Button
               variant="outline"
@@ -177,7 +216,7 @@ export default function ArtworkDetailClient({ artwork }: ArtworkDetailClientProp
         </div>
 
         <div className="mt-5 sm:mt-8 md:mt-12 space-y-5 sm:space-y-6">
-          <div className="bg-white/10 backdrop-blur-md rounded-3xl p-4 sm:p-6 md:p-8 
+          <div className="bg-white/10 backdrop-blur-md rounded-3xl p-4 sm:p-6 md:p-8
             border border-white/20">
             <h2 className="text-base sm:text-lg font-bold text-white mb-3 sm:mb-4 flex items-center gap-2">
               <Sparkles className="size-4 sm:size-5 text-yellow-300" />
@@ -192,7 +231,7 @@ export default function ArtworkDetailClient({ artwork }: ArtworkDetailClientProp
                 <span className="font-medium text-white/90">创作者：</span>
                 <span className="text-pink-300 font-semibold">{artwork.author}</span>
               </p>
-              <div className="flex items-start gap-2 p-2 sm:p-3 
+              <div className="flex items-start gap-2 p-2 sm:p-3
                 bg-white/10 rounded-xl mt-3">
                 <Sparkles className="size-3 sm:size-4 text-blue-300 mt-0.5 flex-shrink-0" />
                 <p className="text-[10px] sm:text-xs text-white/60">
@@ -204,7 +243,7 @@ export default function ArtworkDetailClient({ artwork }: ArtworkDetailClientProp
 
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <Link href="/" className="flex-1">
-              <Button variant="outline" 
+              <Button variant="outline"
                 className="w-full py-3 sm:py-4 rounded-2xl
                   border-2 border-white/30 hover:border-white
                   hover:bg-white/10 text-white
