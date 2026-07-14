@@ -1,0 +1,6 @@
+1:"$Sreact.fragment"
+2:I[74292,["/_next/static/chunks/72873214fccd0530.js","/_next/static/chunks/2628ecacf55564d6.js","/_next/static/chunks/8fed0012f92a3d1f.js","/_next/static/chunks/a79f0b727382f20d.js"],"default"]
+3:I[11282,["/_next/static/chunks/d5e289bff96cf0c1.js","/_next/static/chunks/0eed89cda4daeeed.js"],"OutletBoundary"]
+4:"$Sreact.suspense"
+0:{"buildId":"VX3d_5HSsMDNcGd-dsSn9","rsc":["$","$1","c",{"children":[["$","$L2",null,{"data-inspector-line":"25","data-inspector-column":"9","data-inspector-relative-path":"src/app/artwork/[id]/page.tsx","artworkId":10}],[["$","script","script-0",{"src":"/_next/static/chunks/2628ecacf55564d6.js","async":true}],["$","script","script-1",{"src":"/_next/static/chunks/8fed0012f92a3d1f.js","async":true}],["$","script","script-2",{"src":"/_next/static/chunks/a79f0b727382f20d.js","async":true}]],["$","$L3",null,{"children":["$","$4",null,{"name":"Next.MetadataOutlet","children":"$@5"}]}]]}],"loading":null,"isPartial":false}
+5:null
