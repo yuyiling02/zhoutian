@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { artworkOrderFilePath, fetchArtworkOrder, sortArtworksByOrder } from './artwork-order';
 
 const supabaseProjectId = 'wqpmslbgntcifjzksbxl';
 const supabaseUrl = `https://${supabaseProjectId}.supabase.co`;
@@ -24,7 +25,29 @@ export async function fetchArtworks() {
     .order('id', { ascending: true });
 
   if (error) throw error;
-  return data.map(mapArtwork);
+  const artworks = data.map(mapArtwork);
+  const order = await fetchArtworkOrder();
+  return sortArtworksByOrder(artworks, order);
+}
+
+/** 保存首页与管理页共用的作品展示顺序 */
+export async function saveArtworkOrder(ids: number[]): Promise<void> {
+  const file = new Blob([JSON.stringify(ids)], { type: 'application/json' });
+  const { error: removeError } = await supabase.storage
+    .from('artworks')
+    .remove([artworkOrderFilePath]);
+
+  if (removeError) throw removeError;
+
+  const { error } = await supabase.storage
+    .from('artworks')
+    .upload(artworkOrderFilePath, file, {
+      cacheControl: '0',
+      contentType: 'application/json',
+      upsert: false,
+    });
+
+  if (error) throw error;
 }
 
 /** 从 Supabase 获取单个作品 */

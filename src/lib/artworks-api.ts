@@ -1,4 +1,5 @@
 import type { Artwork, ArtworkConfig } from '@/lib/types';
+import { fetchArtworkOrder, sortArtworksByOrder } from '@/lib/artwork-order';
 
 const supabaseUrl = 'https://wqpmslbgntcifjzksbxl.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndxcG1zbGJnbnRjaWZqemtzYnhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQwMjI5ODksImV4cCI6MjA5OTU5ODk4OX0.NDW-I0AEWaUVS8um8bBsPr7LrWu8m-msxRLpZsDx720';
@@ -31,7 +32,9 @@ export async function fetchPublicArtworks(): Promise<ArtworkConfig> {
     throw new Error('作品列表格式错误');
   }
 
-  return rows.filter(isArtworkRow).map(mapArtworkRow);
+  const artworks = rows.filter(isArtworkRow).map(mapArtworkRow);
+  const order = await fetchArtworkOrder();
+  return sortArtworksByOrder(artworks, order);
 }
 
 export async function fetchPublicArtworkById(id: number): Promise<Artwork> {

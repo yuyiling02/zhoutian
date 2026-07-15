@@ -5,12 +5,38 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
-import { Trash2, Plus, Edit, ArrowLeft, Sparkles, Upload, FileText, Image as ImageIcon, AlertTriangle, Lock, LogOut, Check, X, RefreshCw } from 'lucide-react';
+import {
+  AlertTriangle,
+  ArrowDown,
+  ArrowLeft,
+  ArrowUp,
+  Check,
+  Edit,
+  FileText,
+  Image as ImageIcon,
+  ListOrdered,
+  Lock,
+  LogOut,
+  Plus,
+  RefreshCw,
+  Sparkles,
+  Trash2,
+  Upload,
+  X,
+} from 'lucide-react';
 import Link from 'next/link';
 import { Artwork, ArtworkConfig } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { QRCodeButton } from '@/components/QrcodeButton';
-import { fetchArtworks, addArtwork, updateArtwork, deleteArtwork, uploadFile, deleteStorageFile } from '@/lib/supabase';
+import {
+  addArtwork,
+  deleteArtwork,
+  deleteStorageFile,
+  fetchArtworks,
+  saveArtworkOrder,
+  updateArtwork,
+  uploadFile,
+} from '@/lib/supabase';
 
 const ADMIN_PASSWORD = 'admin123';
 
@@ -39,6 +65,9 @@ export default function AdminPage() {
   const [saving, setSaving] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [msg, setMsg] = useState('');
+  const [ordering, setOrdering] = useState(false);
+  const [orderSaving, setOrderSaving] = useState(false);
+  const [originalOrder, setOriginalOrder] = useState<ArtworkConfig>([]);
 
   useEffect(() => {
     const savedLogin = localStorage.getItem('isAdmin');
@@ -77,6 +106,42 @@ export default function AdminPage() {
     localStorage.removeItem('isAdmin');
     setLoggedIn(false);
     setPassword('');
+  };
+
+  const startOrdering = () => {
+    setOriginalOrder(artworks);
+    setOrdering(true);
+  };
+
+  const cancelOrdering = () => {
+    setArtworks(originalOrder);
+    setOrdering(false);
+  };
+
+  const moveArtwork = (index: number, direction: -1 | 1) => {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= artworks.length) return;
+
+    setArtworks((current) => {
+      const next = [...current];
+      [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
+      return next;
+    });
+  };
+
+  const handleSaveOrder = async () => {
+    setOrderSaving(true);
+    try {
+      await saveArtworkOrder(artworks.map((artwork) => artwork.id));
+      setOriginalOrder(artworks);
+      setOrdering(false);
+      setMsg('✅ 作品顺序已保存，首页刷新后即可看到');
+    } catch (error) {
+      alert(`顺序保存失败：${(error as Error).message}`);
+    } finally {
+      setOrderSaving(false);
+      setTimeout(() => setMsg(''), 4000);
+    }
   };
 
   const handleSubmit = async () => {
@@ -300,31 +365,31 @@ export default function AdminPage() {
       `}</style>
 
       <header className="backdrop-blur-md bg-white/10 border-b border-white/10 sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 py-5 flex items-center justify-between gap-4">
+        <div className="max-w-6xl mx-auto px-3 py-3 sm:px-4 sm:py-5 flex flex-wrap items-center justify-between gap-3 sm:gap-4">
           <Link href="/" className="flex items-center gap-2 group flex-shrink-0">
             <div className="p-2 rounded-xl bg-white/20 backdrop-blur-sm
               border border-white/20 group-hover:bg-white/30
               transition-all duration-300">
               <ArrowLeft className="h-5 w-5 text-white group-hover:text-white" />
             </div>
-            <span className="text-sm text-white/80 group-hover:text-white transition-colors">
+            <span className="hidden text-sm text-white/80 group-hover:text-white transition-colors sm:inline">
               返回首页
             </span>
           </Link>
 
-          <h1 className="text-xl font-bold text-white flex items-center gap-2 flex-shrink-0">
-            <Sparkles className="size-6 text-yellow-300" />
+          <h1 className="text-base font-bold text-white flex items-center gap-2 flex-shrink-0 sm:text-xl">
+            <Sparkles className="size-5 text-yellow-300 sm:size-6" />
             作品管理中心
           </h1>
 
-          <div className="flex items-center gap-3 flex-shrink-0">
+          <div className="order-2 flex w-full items-center justify-between gap-2 sm:order-none sm:w-auto sm:justify-end sm:gap-3">
             <Dialog open={dialogOpen} onOpenChange={(open) => {
               setDialogOpen(open);
               if (!open) resetForm();
             }}>
               <DialogTrigger asChild>
                 <Button
-                  className="gap-3 px-6 py-3
+                  className="gap-2 px-3 py-3 sm:gap-3 sm:px-6
                     bg-white/20 hover:bg-white/30 rounded-2xl
                     text-white font-semibold
                     border border-white/20 hover:border-white/40
@@ -463,12 +528,12 @@ export default function AdminPage() {
               variant="ghost"
               size="sm"
               onClick={handleLogout}
-              className="gap-2 px-4 py-2 rounded-xl
+              className="gap-2 px-3 py-2 rounded-xl sm:px-4
                 hover:bg-red-500/20 text-white/80 hover:text-red-200
                 transition-all duration-300"
             >
               <LogOut className="h-4 w-4" />
-              <span className="text-sm">退出</span>
+              <span className="hidden text-sm sm:inline">退出</span>
             </Button>
             <QRCodeButton />
           </div>
@@ -487,22 +552,66 @@ export default function AdminPage() {
           </div>
         )}
 
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
           <p className="text-sm text-white/70">
             共 <strong className="text-white">{artworks.length}</strong> 个作品
           </p>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={loadArtworks}
-            disabled={loading}
-            className="rounded-xl border-2 border-white/30 bg-white/10
-              text-white hover:bg-white/20 hover:border-white/50"
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            刷新
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            {ordering ? (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={cancelOrdering}
+                  disabled={orderSaving}
+                  className="flex-1 sm:flex-none rounded-xl border-2 border-white/30 bg-white/10 text-white hover:bg-white/20"
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  取消
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleSaveOrder}
+                  disabled={orderSaving}
+                  className="flex-1 sm:flex-none rounded-xl bg-white text-purple-700 hover:bg-white/90"
+                >
+                  {orderSaving ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <Check className="h-4 w-4 mr-2" />}
+                  保存顺序
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={startOrdering}
+                disabled={loading || artworks.length < 2}
+                className="flex-1 sm:flex-none rounded-xl border-2 border-white/30 bg-white/10 text-white hover:bg-white/20 hover:border-white/50"
+              >
+                <ListOrdered className="h-4 w-4 mr-2" />
+                调整顺序
+              </Button>
+            )}
+            {!ordering && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={loadArtworks}
+                disabled={loading}
+                className="flex-1 sm:flex-none rounded-xl border-2 border-white/30 bg-white/10
+                  text-white hover:bg-white/20 hover:border-white/50"
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                刷新
+              </Button>
+            )}
+          </div>
         </div>
+
+        {ordering && (
+          <div className="mb-6 rounded-2xl border border-white/20 bg-white/10 p-4 text-sm text-white/90 backdrop-blur-md">
+            使用每个作品上的上移、下移按钮调整首页展示顺序，完成后点击“保存顺序”。
+          </div>
+        )}
 
         {loading ? (
           <div className="text-center py-20 text-white/70">
@@ -511,7 +620,7 @@ export default function AdminPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {artworks.map((artwork) => (
+            {artworks.map((artwork, index) => (
               <Card key={artwork.id}
                 className="bg-white/20 backdrop-blur-md border border-white/20
                   rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300
@@ -525,7 +634,7 @@ export default function AdminPage() {
                       </CardTitle>
                     </div>
                     <Badge className="bg-white/20 text-white border border-white/20">
-                      ID: {artwork.id}
+                      {ordering ? `第 ${index + 1} 位` : `ID: ${artwork.id}`}
                     </Badge>
                   </div>
                   <p className="text-sm text-white/70 mt-1 flex items-center gap-1">
@@ -547,6 +656,28 @@ export default function AdminPage() {
                     </p>
                   </div>
 
+                  {ordering ? (
+                    <div className="grid grid-cols-2 gap-3 pt-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => moveArtwork(index, -1)}
+                        disabled={index === 0 || orderSaving}
+                        className="rounded-xl border-2 border-white/30 bg-white/10 text-white hover:bg-white/20 disabled:opacity-30"
+                      >
+                        <ArrowUp className="h-4 w-4 mr-2" />
+                        上移
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => moveArtwork(index, 1)}
+                        disabled={index === artworks.length - 1 || orderSaving}
+                        className="rounded-xl border-2 border-white/30 bg-white/10 text-white hover:bg-white/20 disabled:opacity-30"
+                      >
+                        <ArrowDown className="h-4 w-4 mr-2" />
+                        下移
+                      </Button>
+                    </div>
+                  ) : (
                   <div className="flex gap-2 pt-2">
                     <Button
                       variant="outline"
@@ -585,6 +716,7 @@ export default function AdminPage() {
                       删除
                     </Button>
                   </div>
+                  )}
                 </CardContent>
               </Card>
             ))}
