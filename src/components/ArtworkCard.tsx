@@ -1,19 +1,16 @@
 'use client';
 
-import { forwardRef, useEffect, useState, type ComponentPropsWithoutRef } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Artwork } from '@/lib/types';
 import { Sparkles } from 'lucide-react';
 import { preloadModel } from '@/components/ModelViewer';
 
-interface ArtworkCardProps extends ComponentPropsWithoutRef<'button'> {
+interface ArtworkCardProps {
   artwork: Artwork;
 }
 
-export const ArtworkCard = forwardRef<HTMLButtonElement, ArtworkCardProps>(function ArtworkCard(
-  { artwork, className, ...buttonProps },
-  ref,
-) {
+export function ArtworkCard({ artwork }: ArtworkCardProps) {
   const [imageError, setImageError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   
@@ -24,12 +21,7 @@ export const ArtworkCard = forwardRef<HTMLButtonElement, ArtworkCardProps>(funct
   }, [isHovered, artwork.modelFile]);
 
   return (
-    <button
-      ref={ref}
-      type="button"
-      className={`group block w-full cursor-pointer text-left ${className ?? ''}`}
-      {...buttonProps}
-    >
+    <div className="group block w-full cursor-pointer text-left">
       <div
         className="relative aspect-square w-full overflow-hidden rounded-3xl 
           bg-white/20 backdrop-blur-md border border-white/20
@@ -95,6 +87,6 @@ export const ArtworkCard = forwardRef<HTMLButtonElement, ArtworkCardProps>(funct
           <div className="w-2 h-2 rounded-full bg-blue-300 animate-pulse delay-200" />
         </div>
       </div>
-    </button>
+    </div>
   );
-});
+}
