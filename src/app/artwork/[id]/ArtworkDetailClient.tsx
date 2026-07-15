@@ -258,7 +258,7 @@ export default function ArtworkDetailClient({ artworkId }: ArtworkDetailClientPr
               <Button variant="outline"
                 className="w-full py-3 sm:py-4 rounded-2xl
                   border-2 border-white/30 hover:border-white
-                  hover:bg-white/10 text-white
+                  bg-white/10 text-white hover:bg-white/20 hover:text-white
                   transition-all duration-300 font-semibold text-sm sm:text-base">
                 <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2" />
                 查看更多作品
