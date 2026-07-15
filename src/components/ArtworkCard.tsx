@@ -1,24 +1,17 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
 import { Artwork } from '@/lib/types';
 import { Sparkles } from 'lucide-react';
-import { preloadModel } from '@/components/ModelViewer';
 
 interface ArtworkCardProps {
   artwork: Artwork;
+  priority?: boolean;
 }
 
-export function ArtworkCard({ artwork }: ArtworkCardProps) {
+export function ArtworkCard({ artwork, priority = false }: ArtworkCardProps) {
   const [imageError, setImageError] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
-  
-  useEffect(() => {
-    if (isHovered) {
-      preloadModel(artwork.modelFile).catch(() => {});
-    }
-  }, [isHovered, artwork.modelFile]);
 
   return (
     <div className="group block w-full cursor-pointer text-left">
@@ -26,19 +19,17 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
         className="relative aspect-square w-full overflow-hidden rounded-3xl 
           bg-white/20 backdrop-blur-md border border-white/20
           transition-all duration-500 ease-out
-          hover:shadow-2xl hover:shadow-white/20
-          hover:-translate-y-3"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+          md:hover:shadow-2xl md:hover:shadow-white/20
+          md:hover:-translate-y-3"
       >
         {artwork.thumbnail && !imageError ? (
           <Image
             src={artwork.thumbnail}
             alt={`${artwork.title}`}
             fill
-            className="object-cover transition-transform duration-700 group-hover:scale-110"
+            className="object-cover transition-transform duration-700 md:group-hover:scale-110"
             sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            priority={artwork.id <= 6}
+            priority={priority}
             onError={() => setImageError(true)}
           />
         ) : (
@@ -56,7 +47,8 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
         )}
         
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent 
-          opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+          opacity-100 md:opacity-0 md:group-hover:opacity-100
+          transition-opacity duration-300 pointer-events-none">
           <div className="absolute bottom-0 left-0 right-0 p-5">
             <div className="flex items-center gap-2 mb-2">
               <Sparkles className="w-5 h-5 text-yellow-300" />
@@ -81,7 +73,8 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
           </span>
         </div>
         
-        <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+        <div className="absolute top-3 right-3 hidden gap-1 opacity-0 transition-opacity duration-500
+          md:flex md:group-hover:opacity-100">
           <div className="w-2 h-2 rounded-full bg-yellow-300 animate-pulse" />
           <div className="w-2 h-2 rounded-full bg-pink-300 animate-pulse delay-100" />
           <div className="w-2 h-2 rounded-full bg-blue-300 animate-pulse delay-200" />

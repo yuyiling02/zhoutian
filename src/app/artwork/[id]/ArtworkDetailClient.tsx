@@ -2,11 +2,28 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ModelViewer } from '@/components/ModelViewer';
+import dynamic from 'next/dynamic';
 import { Artwork } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Share2, Sparkles, Check, RotateCcw, RefreshCw } from 'lucide-react';
-import { fetchArtworkById } from '@/lib/supabase';
+import { fetchPublicArtworkById } from '@/lib/artworks-api';
+import { preloadModelFile } from '@/lib/model-download';
+
+const ModelViewer = dynamic(
+  () => import('@/components/ModelViewer').then((module) => module.ModelViewer),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-full min-h-[280px] items-center justify-center
+        bg-gradient-to-br from-cyan-50 to-purple-100">
+        <div className="text-center">
+          <RefreshCw className="mx-auto mb-3 h-8 w-8 animate-spin text-purple-500" />
+          <p className="text-sm font-medium text-slate-600">正在准备3D查看器...</p>
+        </div>
+      </div>
+    ),
+  },
+);
 
 interface ArtworkDetailClientProps {
   artworkId: number;
@@ -21,7 +38,8 @@ export default function ArtworkDetailClient({ artworkId }: ArtworkDetailClientPr
     const loadArtwork = async () => {
       setLoading(true);
       try {
-        const data = await fetchArtworkById(artworkId);
+        const data = await fetchPublicArtworkById(artworkId);
+        preloadModelFile(data.modelFile).catch(() => {});
         setArtwork(data);
       } catch {
         setArtwork(undefined);
@@ -185,8 +203,8 @@ export default function ArtworkDetailClient({ artworkId }: ArtworkDetailClientPr
           </p>
         </div>
 
-        <div className="relative w-full aspect-square sm:aspect-[4/3] md:aspect-[16/10] lg:aspect-[16/9]
-          max-h-[400px] sm:max-h-[500px] lg:max-h-[600px]
+        <div className="relative w-full aspect-[4/5] min-h-[360px] sm:aspect-[4/3] md:aspect-[16/10] lg:aspect-[16/9]
+          max-h-[520px] sm:max-h-[500px] lg:max-h-[600px]
           rounded-3xl overflow-hidden
           border-2 border-white/20"
           style={{
@@ -194,7 +212,7 @@ export default function ArtworkDetailClient({ artworkId }: ArtworkDetailClientPr
           }}>
           <ModelViewer modelUrl={artwork.modelFile} />
 
-          <div className="absolute bottom-3 right-3 flex gap-2">
+          <div className="absolute right-3 top-3 z-20 flex gap-2">
             <Button
               variant="outline"
               size="sm"

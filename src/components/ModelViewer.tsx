@@ -7,37 +7,13 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { Spinner } from '@/components/ui/spinner';
 import { Sparkles } from 'lucide-react';
+import { loadModelFile, releaseModelFile } from '@/lib/model-download';
 
 interface ModelViewerProps {
   modelUrl: string;
 }
 
 const modelCache = new Map<string, THREE.Group>();
-const preloadedModels = new Map<string, Promise<THREE.Group>>();
-
-export const preloadModel = async (modelUrl: string) => {
-  if (modelCache.has(modelUrl)) return;
-  if (preloadedModels.has(modelUrl)) return preloadedModels.get(modelUrl)!;
-
-  const promise = new Promise<THREE.Group>((resolve, reject) => {
-    const loader = new GLTFLoader();
-    loader.load(
-      modelUrl,
-      (gltf) => {
-        const model = gltf.scene;
-        modelCache.set(modelUrl, model.clone());
-        resolve(model);
-      },
-      undefined,
-      (err) => {
-        reject(err);
-      }
-    );
-  });
-
-  preloadedModels.set(modelUrl, promise);
-  return promise;
-};
 
 export function ModelViewer({ modelUrl }: ModelViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -54,6 +30,8 @@ export function ModelViewer({ modelUrl }: ModelViewerProps) {
 
   useEffect(() => {
     if (!containerRef.current) return;
+
+    let cancelled = false;
 
     const container = containerRef.current;
     const width = container.clientWidth;
@@ -194,9 +172,25 @@ export function ModelViewer({ modelUrl }: ModelViewerProps) {
       setError(null);
     } else {
       const loader = new GLTFLoader();
-      loader.load(
-        modelUrl,
-        (gltf) => {
+      const handleLoadError = (loadError: unknown) => {
+        if (cancelled) return;
+        console.error('Error loading model:', loadError);
+        const isStaleBlob = modelUrl.startsWith('blob:');
+        setError(isStaleBlob ? '模型文件尚未完成上传，请稍后刷新页面重试' : '模型加载失败，请检查文件是否存在');
+        setLoading(false);
+      };
+
+      loadModelFile(modelUrl, (loaded, total) => {
+        if (cancelled || total <= 0) return;
+        const percent = Math.round((loaded / total) * 90);
+        setProgress(Math.min(90, percent));
+      }).then((buffer) => {
+        if (cancelled) return;
+        loader.parse(
+          buffer,
+          '',
+          (gltf) => {
+            if (cancelled) return;
           const model = gltf.scene;
           setupModel(model);
           
@@ -204,22 +198,15 @@ export function ModelViewer({ modelUrl }: ModelViewerProps) {
           
           scene.add(model);
           modelRef.current = model;
-          
+
+          releaseModelFile(modelUrl);
+          setProgress(100);
           setLoading(false);
           setError(null);
-        },
-        (progress) => {
-          const percent = Math.round((progress.loaded / progress.total) * 100);
-          setProgress(percent);
-        },
-        (err) => {
-          console.error('Error loading model:', err);
-          // 如果是 blob URL 且加载失败（页面刷新后 blob 失效），给出更具体的提示
-          const isStaleBlob = modelUrl.startsWith('blob:');
-          setError(isStaleBlob ? '模型文件尚未完成上传，请稍后刷新页面重试' : '模型加载失败，请检查文件是否存在');
-          setLoading(false);
-        }
-      );
+          },
+          handleLoadError,
+        );
+      }).catch(handleLoadError);
     }
 
     const animate = () => {
@@ -244,6 +231,7 @@ export function ModelViewer({ modelUrl }: ModelViewerProps) {
     window.addEventListener('resize', handleResize);
 
     return () => {
+      cancelled = true;
       window.removeEventListener('resize', handleResize);
       
       if (animationRef.current) {

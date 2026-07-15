@@ -15,7 +15,7 @@ import {
 import { Search, Sparkles, Settings, RefreshCw } from 'lucide-react';
 import { QRCodeButton } from '@/components/QrcodeButton';
 import { Button } from '@/components/ui/button';
-import { fetchArtworks } from '@/lib/supabase';
+import { fetchPublicArtworks } from '@/lib/artworks-api';
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -29,7 +29,7 @@ export default function Home() {
   const loadArtworks = async () => {
     setLoading(true);
     try {
-      const data = await fetchArtworks();
+      const data = await fetchPublicArtworks();
       setArtworks(data);
     } catch {
       setArtworks([]);
@@ -45,11 +45,11 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-400 via-pink-400 to-purple-400">
-      <div className="absolute inset-0 bg-black/5" />
+      <div className="pointer-events-none absolute inset-0 bg-black/5" />
 
-      <div className="relative max-w-6xl mx-auto px-4 py-8">
-        <header className="text-center mb-12">
-          <div className="flex justify-between items-center mb-8">
+      <div className="relative max-w-6xl mx-auto px-3 py-5 sm:px-4 sm:py-8">
+        <header className="mb-8 text-center sm:mb-12">
+          <div className="mb-6 flex items-center justify-between gap-2 sm:mb-8">
             <div className="flex gap-3">
               <QRCodeButton />
             </div>
@@ -69,11 +69,11 @@ export default function Home() {
               <a
                 href="/admin"
                 className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30
-                  rounded-full text-white text-sm font-medium border border-white/30
+                  rounded-full text-white text-sm font-medium border border-white/30 px-3 sm:px-4
                   backdrop-blur-sm transition-all duration-300"
               >
                 <Settings className="w-4 h-4" />
-                管理作品
+                <span className="hidden sm:inline">管理作品</span>
               </a>
             </div>
           </div>
@@ -85,10 +85,10 @@ export default function Home() {
             </div>
           </div>
 
-          <h1 className="text-4xl font-bold text-white mb-3">
+          <h1 className="text-2xl font-bold text-white mb-3 sm:text-4xl">
             ✨ 3D魔法作品展示 ✨
           </h1>
-          <p className="text-white/80 text-lg mb-8">
+          <p className="mb-6 text-sm text-white/80 sm:mb-8 sm:text-lg">
             探索充满童趣与科技感的3D艺术世界
           </p>
 
@@ -115,15 +115,16 @@ export default function Home() {
             </div>
           ) : filteredArtworks.length > 0 ? (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredArtworks.map((artwork) => (
+              {filteredArtworks.map((artwork, index) => (
                 <Link
                   key={artwork.id}
                   href={`/artwork/${artwork.id}`}
+                  prefetch={false}
                   aria-label={`查看作品：${artwork.title}`}
                   className="block min-w-0 rounded-3xl focus-visible:outline-none
                     focus-visible:ring-4 focus-visible:ring-white/70"
                 >
-                    <ArtworkCard artwork={artwork} />
+                    <ArtworkCard artwork={artwork} priority={index === 0} />
                 </Link>
               ))}
             </div>
