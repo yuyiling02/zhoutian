@@ -1,7 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = 'https://wqpmslbgntcifjzksbxl.supabase.co';
+const supabaseProjectId = 'wqpmslbgntcifjzksbxl';
+const supabaseUrl = `https://${supabaseProjectId}.supabase.co`;
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndxcG1zbGJnbnRjaWZqemtzYnhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQwMjI5ODksImV4cCI6MjA5OTU5ODk4OX0.NDW-I0AEWaUVS8um8bBsPr7LrWu8m-msxRLpZsDx720';
+const resumableUploadThreshold = 6 * 1024 * 1024;
+const resumableChunkSize = 6 * 1024 * 1024;
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
@@ -102,21 +105,70 @@ export async function deleteArtwork(id: number) {
 export async function uploadFile(
   file: File,
   folder: 'models' | 'thumbnails',
+  onProgress?: (bytesUploaded: number, bytesTotal: number) => void,
 ): Promise<string> {
   const extension = file.name.split('.').pop() || '';
-  const safeFileName = `${Date.now()}.${extension}`;
+  const uniqueId = globalThis.crypto.randomUUID();
+  const safeFileName = `${Date.now()}-${uniqueId}.${extension}`;
   const fileName = `${folder}/${safeFileName}`;
-  const { error: uploadError } = await supabase.storage
-    .from('artworks')
-    .upload(fileName, file, { upsert: true });
 
-  if (uploadError) throw uploadError;
+  onProgress?.(0, file.size);
+
+  if (file.size > resumableUploadThreshold) {
+    await uploadLargeFile(file, fileName, onProgress);
+  } else {
+    const { error: uploadError } = await supabase.storage
+      .from('artworks')
+      .upload(fileName, file, {
+        cacheControl: '3600',
+        contentType: file.type || undefined,
+        upsert: false,
+      });
+
+    if (uploadError) throw uploadError;
+    onProgress?.(file.size, file.size);
+  }
 
   const { data: publicUrl } = supabase.storage
     .from('artworks')
     .getPublicUrl(fileName);
 
   return publicUrl.publicUrl;
+}
+
+async function uploadLargeFile(
+  file: File,
+  fileName: string,
+  onProgress?: (bytesUploaded: number, bytesTotal: number) => void,
+): Promise<void> {
+  const { Upload } = await import('tus-js-client');
+  const { data: { session } } = await supabase.auth.getSession();
+  const accessToken = session?.access_token ?? supabaseAnonKey;
+
+  await new Promise<void>((resolve, reject) => {
+    const upload = new Upload(file, {
+      endpoint: `https://${supabaseProjectId}.storage.supabase.co/storage/v1/upload/resumable`,
+      retryDelays: [0, 3000, 5000, 10000, 20000],
+      headers: {
+        apikey: supabaseAnonKey,
+        authorization: `Bearer ${accessToken}`,
+      },
+      uploadDataDuringCreation: true,
+      removeFingerprintOnSuccess: true,
+      chunkSize: resumableChunkSize,
+      metadata: {
+        bucketName: 'artworks',
+        objectName: fileName,
+        contentType: file.type || 'model/gltf-binary',
+        cacheControl: '3600',
+      },
+      onProgress,
+      onError: reject,
+      onSuccess: () => resolve(),
+    });
+
+    upload.start();
+  });
 }
 
 /** 删除 Storage 文件 */

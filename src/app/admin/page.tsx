@@ -37,6 +37,7 @@ export default function AdminPage() {
   });
 
   const [saving, setSaving] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [msg, setMsg] = useState('');
 
   useEffect(() => {
@@ -87,23 +88,40 @@ export default function AdminPage() {
     setSaving(true);
     const modelFile = formData.modelFile;
     const thumbFile = formData.thumbnail;
+    const totalUploadBytes =
+      (modelFile instanceof File ? modelFile.size : 0) +
+      (thumbFile instanceof File ? thumbFile.size : 0);
+    const uploadedBytes = { model: 0, thumbnail: 0 };
+
+    const updateUploadProgress = (
+      kind: keyof typeof uploadedBytes,
+      bytesUploaded: number,
+    ) => {
+      uploadedBytes[kind] = bytesUploaded;
+      if (totalUploadBytes > 0) {
+        const uploadedTotal = uploadedBytes.model + uploadedBytes.thumbnail;
+        setUploadProgress(Math.min(100, Math.round((uploadedTotal / totalUploadBytes) * 100)));
+      }
+    };
+
+    setUploadProgress(totalUploadBytes > 0 ? 0 : null);
 
     try {
-      // ————— 上传文件到 Supabase Storage —————
-      let modelUrl = '';
-      let thumbUrl = '';
+      // 模型与缩略图并行上传，缩短总等待时间。
+      const [modelUrl, thumbUrl] = await Promise.all([
+        modelFile instanceof File
+          ? uploadFile(modelFile, 'models', (uploaded) => {
+              updateUploadProgress('model', uploaded);
+            })
+          : Promise.resolve(modelFile),
+        thumbFile instanceof File
+          ? uploadFile(thumbFile, 'thumbnails', (uploaded) => {
+              updateUploadProgress('thumbnail', uploaded);
+            })
+          : Promise.resolve(thumbFile),
+      ]);
 
-      if (modelFile instanceof File) {
-        modelUrl = await uploadFile(modelFile, 'models');
-      } else {
-        modelUrl = modelFile;
-      }
-
-      if (thumbFile instanceof File) {
-        thumbUrl = await uploadFile(thumbFile, 'thumbnails');
-      } else {
-        thumbUrl = thumbFile;
-      }
+      setUploadProgress(totalUploadBytes > 0 ? 100 : null);
 
       // ————— 增/改到 Supabase 数据库 —————
       if (editingArtwork) {
@@ -138,6 +156,7 @@ export default function AdminPage() {
       alert(`保存失败：${(error as Error).message}`);
     } finally {
       setSaving(false);
+      setUploadProgress(null);
       setTimeout(() => setMsg(''), 4000);
     }
   };
@@ -423,7 +442,12 @@ export default function AdminPage() {
                     className="rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
                   >
                     {saving ? (
-                      <><RefreshCw className="h-4 w-4 mr-2 animate-spin" />保存中...</>
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        {uploadProgress !== null && uploadProgress < 100
+                          ? `上传中 ${uploadProgress}%`
+                          : '保存中...'}
+                      </>
                     ) : (
                       <>
                         <Check className="h-4 w-4 mr-2" />
