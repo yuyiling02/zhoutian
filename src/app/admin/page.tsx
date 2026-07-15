@@ -7,9 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
 import {
   AlertTriangle,
-  ArrowDown,
   ArrowLeft,
-  ArrowUp,
   Check,
   Edit,
   FileText,
@@ -68,6 +66,7 @@ export default function AdminPage() {
   const [ordering, setOrdering] = useState(false);
   const [orderSaving, setOrderSaving] = useState(false);
   const [originalOrder, setOriginalOrder] = useState<ArtworkConfig>([]);
+  const [positionDrafts, setPositionDrafts] = useState<Record<number, string>>({});
 
   useEffect(() => {
     const savedLogin = localStorage.getItem('isAdmin');
@@ -110,23 +109,37 @@ export default function AdminPage() {
 
   const startOrdering = () => {
     setOriginalOrder(artworks);
+    setPositionDrafts(
+      Object.fromEntries(artworks.map((artwork, index) => [artwork.id, String(index + 1)])),
+    );
     setOrdering(true);
   };
 
   const cancelOrdering = () => {
     setArtworks(originalOrder);
+    setPositionDrafts({});
     setOrdering(false);
   };
 
-  const moveArtwork = (index: number, direction: -1 | 1) => {
-    const targetIndex = index + direction;
-    if (targetIndex < 0 || targetIndex >= artworks.length) return;
+  const moveArtworkToPosition = (artworkId: number) => {
+    const sourceIndex = artworks.findIndex((artwork) => artwork.id === artworkId);
+    const requestedPosition = Number.parseInt(positionDrafts[artworkId] ?? '', 10);
+    if (sourceIndex === -1 || !Number.isFinite(requestedPosition)) {
+      setPositionDrafts((drafts) => ({
+        ...drafts,
+        [artworkId]: String(sourceIndex + 1),
+      }));
+      return;
+    }
 
-    setArtworks((current) => {
-      const next = [...current];
-      [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
-      return next;
-    });
+    const targetIndex = Math.min(artworks.length - 1, Math.max(0, requestedPosition - 1));
+    const next = [...artworks];
+    const [movedArtwork] = next.splice(sourceIndex, 1);
+    next.splice(targetIndex, 0, movedArtwork);
+    setArtworks(next);
+    setPositionDrafts(
+      Object.fromEntries(next.map((artwork, index) => [artwork.id, String(index + 1)])),
+    );
   };
 
   const handleSaveOrder = async () => {
@@ -134,6 +147,7 @@ export default function AdminPage() {
     try {
       await saveArtworkOrder(artworks.map((artwork) => artwork.id));
       setOriginalOrder(artworks);
+      setPositionDrafts({});
       setOrdering(false);
       setMsg('✅ 作品顺序已保存，首页刷新后即可看到');
     } catch (error) {
@@ -609,7 +623,7 @@ export default function AdminPage() {
 
         {ordering && (
           <div className="mb-6 rounded-2xl border border-white/20 bg-white/10 p-4 text-sm text-white/90 backdrop-blur-md">
-            使用每个作品上的上移、下移按钮调整首页展示顺序，完成后点击“保存顺序”。
+            在每个作品的数字框中输入目标位置，按回车或点到别处即可移动，完成后点击“保存顺序”。
           </div>
         )}
 
@@ -657,25 +671,33 @@ export default function AdminPage() {
                   </div>
 
                   {ordering ? (
-                    <div className="grid grid-cols-2 gap-3 pt-2">
-                      <Button
-                        variant="outline"
-                        onClick={() => moveArtwork(index, -1)}
-                        disabled={index === 0 || orderSaving}
-                        className="rounded-xl border-2 border-white/30 bg-white/10 text-white hover:bg-white/20 disabled:opacity-30"
+                    <div className="flex items-center justify-between gap-4 pt-2">
+                      <label
+                        htmlFor={`position-${artwork.id}`}
+                        className="text-sm font-medium text-white"
                       >
-                        <ArrowUp className="h-4 w-4 mr-2" />
-                        上移
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => moveArtwork(index, 1)}
-                        disabled={index === artworks.length - 1 || orderSaving}
-                        className="rounded-xl border-2 border-white/30 bg-white/10 text-white hover:bg-white/20 disabled:opacity-30"
-                      >
-                        <ArrowDown className="h-4 w-4 mr-2" />
-                        下移
-                      </Button>
+                        首页展示位置
+                      </label>
+                      <Input
+                        id={`position-${artwork.id}`}
+                        type="number"
+                        inputMode="numeric"
+                        min={1}
+                        max={artworks.length}
+                        value={positionDrafts[artwork.id] ?? String(index + 1)}
+                        onFocus={(event) => event.currentTarget.select()}
+                        onChange={(event) => setPositionDrafts((drafts) => ({
+                          ...drafts,
+                          [artwork.id]: event.target.value,
+                        }))}
+                        onBlur={() => moveArtworkToPosition(artwork.id)}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter') event.currentTarget.blur();
+                        }}
+                        disabled={orderSaving}
+                        aria-label={`${artwork.title}的首页展示位置`}
+                        className="h-11 w-24 rounded-xl border-2 border-white/30 bg-white/15 text-center text-lg font-bold text-white placeholder:text-white/50 focus:border-white focus-visible:ring-white/30"
+                      />
                     </div>
                   ) : (
                   <div className="flex gap-2 pt-2">
