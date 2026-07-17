@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "next build && touch out/.nojekyll",
+    "build": "next build && node -e \"require('fs').writeFileSync('out/.nojekyll', '')\"",
     "dev": "bash ./scripts/dev.sh",
     "preinstall": "npx only-allow pnpm",
     "lint": "eslint",

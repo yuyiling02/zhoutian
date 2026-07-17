@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { artworkOrderFilePath, fetchArtworkOrder, sortArtworksByOrder } from './artwork-order';
+import type { CreativeWork } from './types';
 
 const supabaseProjectId = 'wqpmslbgntcifjzksbxl';
 const supabaseUrl = `https://${supabaseProjectId}.supabase.co`;
@@ -127,7 +128,7 @@ export async function deleteArtwork(id: number) {
 /** 上传文件到 Supabase Storage，返回公开 URL */
 export async function uploadFile(
   file: File,
-  folder: 'models' | 'thumbnails',
+  folder: 'models' | 'thumbnails' | 'collage-poetry' | 'paper-cutting',
   onProgress?: (bytesUploaded: number, bytesTotal: number) => void,
 ): Promise<string> {
   const extension = file.name.split('.').pop() || '';
@@ -157,6 +158,21 @@ export async function uploadFile(
     .getPublicUrl(fileName);
 
   return publicUrl.publicUrl;
+}
+
+/** 保存拼贴诗与剪纸展区的作品清单 */
+export async function saveCreativeWorks(works: CreativeWork[]): Promise<void> {
+  const filePath = 'settings/creative-works.json';
+  const file = new Blob([JSON.stringify(works)], { type: 'application/json' });
+  const { error: removeError } = await supabase.storage.from('artworks').remove([filePath]);
+  if (removeError) throw removeError;
+
+  const { error } = await supabase.storage.from('artworks').upload(filePath, file, {
+    cacheControl: '0',
+    contentType: 'application/json',
+    upsert: false,
+  });
+  if (error) throw error;
 }
 
 async function uploadLargeFile(

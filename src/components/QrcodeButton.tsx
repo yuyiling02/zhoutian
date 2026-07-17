@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Button } from '@/components/ui/button';
 import { QrCode, X, Check, Smartphone } from 'lucide-react';
@@ -12,15 +12,18 @@ interface QRCodeButtonProps {
 export function QRCodeButton({ className }: QRCodeButtonProps) {
   const [showQR, setShowQR] = useState(false);
   const [copied, setCopied] = useState(false);
-  
-  const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
+  const [currentUrl, setCurrentUrl] = useState('');
+
+  useEffect(() => {
+    setCurrentUrl(window.location.href);
+  }, []);
 
   return (
     <>
       <Button
         onClick={() => setShowQR(true)}
-        className={`${className} bg-white/20 hover:bg-white/30 text-white font-medium 
-          border border-white/20 hover:border-white/40
+        className={`${className ?? ''} font-medium
+          border border-black/10
           hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl
           backdrop-blur-sm`}
       >

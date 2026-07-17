@@ -397,6 +397,15 @@ export default function AdminPage() {
           </h1>
 
           <div className="order-2 flex w-full items-center justify-between gap-2 sm:order-none sm:w-auto sm:justify-end sm:gap-3">
+            <Link href="/admin/creative">
+              <Button
+                variant="outline"
+                className="gap-2 rounded-2xl border-white/30 bg-white/10 px-3 py-3 text-white hover:bg-white/20 hover:text-white sm:px-4"
+              >
+                <ImageIcon className="size-5" />
+                图片展区
+              </Button>
+            </Link>
             <Dialog open={dialogOpen} onOpenChange={(open) => {
               setDialogOpen(open);
               if (!open) resetForm();
@@ -714,7 +723,7 @@ export default function AdminPage() {
                       编辑
                     </Button>
 
-                    <Link href={`/artwork/${artwork.id}`} className="flex-1">
+                    <Link href={`/artwork?id=${artwork.id}`} className="flex-1">
                       <Button variant="outline" size="sm"
                         className="w-full py-2 rounded-xl
                           border-2 border-white/30 bg-white/10

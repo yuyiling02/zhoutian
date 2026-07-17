@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Artwork } from '@/lib/types';
-import { Sparkles } from 'lucide-react';
+import type { Artwork } from '@/lib/types';
+import { Box, Move3D, Sparkles } from 'lucide-react';
 
 interface ArtworkCardProps {
   artwork: Artwork;
@@ -14,72 +14,48 @@ export function ArtworkCard({ artwork, priority = false }: ArtworkCardProps) {
   const [imageError, setImageError] = useState(false);
 
   return (
-    <div className="group block w-full cursor-pointer text-left">
-      <div
-        className="relative aspect-square w-full overflow-hidden rounded-3xl 
-          bg-white/20 backdrop-blur-md border border-white/20
-          transition-all duration-500 ease-out
-          md:hover:shadow-2xl md:hover:shadow-white/20
-          md:hover:-translate-y-3"
-      >
+    <article className="group w-full overflow-hidden rounded-[1.75rem] border border-black/8 bg-white
+      shadow-[0_12px_40px_rgba(57,43,30,0.08)] transition duration-300
+      hover:-translate-y-1.5 hover:shadow-[0_20px_55px_rgba(57,43,30,0.14)]">
+      <div className="relative aspect-[4/5] overflow-hidden bg-[#e8edff]">
         {artwork.thumbnail && !imageError ? (
           <Image
             src={artwork.thumbnail}
-            alt={`${artwork.title}`}
+            alt={artwork.title}
             fill
-            className="object-cover transition-transform duration-700 md:group-hover:scale-110"
-            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover transition duration-500 group-hover:scale-[1.035]"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             priority={priority}
             onError={() => setImageError(true)}
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-white/10 to-white/5">
-            <div className="text-center">
-              <div className="w-16 h-16 mx-auto rounded-2xl bg-white/20 flex items-center justify-center mb-3">
-                <Sparkles className="w-8 h-8 text-white" />
-              </div>
-              <p className="text-base text-white font-semibold">{artwork.title}</p>
-              {artwork.author && (
-                <p className="text-sm text-white/60 mt-1">by {artwork.author}</p>
-              )}
+          <div className="grid size-full place-items-center bg-[radial-gradient(circle_at_top_left,#fff_0,#e8edff_45%,#cdd7ff_100%)]">
+            <div className="text-center text-[#3559e8]">
+              <span className="mx-auto grid size-16 place-items-center rounded-3xl bg-white/75 shadow-sm">
+                <Sparkles className="size-7" />
+              </span>
+              <p className="mt-4 max-w-52 font-black">{artwork.title}</p>
             </div>
           </div>
         )}
-        
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent 
-          opacity-100 md:opacity-0 md:group-hover:opacity-100
-          transition-opacity duration-300 pointer-events-none">
-          <div className="absolute bottom-0 left-0 right-0 p-5">
-            <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="w-5 h-5 text-yellow-300" />
-              <h3 className="text-white text-lg font-bold truncate">
-                {artwork.title}
-              </h3>
-            </div>
-            {artwork.author && (
-              <p className="text-white/70 text-sm truncate">
-                创作者：{artwork.author}
-              </p>
-            )}
-          </div>
-        </div>
-        
-        <div className="absolute top-3 left-3">
-          <span className="inline-flex items-center gap-1 px-2 py-1 
-            bg-white/20 backdrop-blur-sm rounded-full
-            text-[10px] text-white/80 border border-white/20">
-            <Sparkles className="w-3" />
-            3D作品
-          </span>
-        </div>
-        
-        <div className="absolute top-3 right-3 hidden gap-1 opacity-0 transition-opacity duration-500
-          md:flex md:group-hover:opacity-100">
-          <div className="w-2 h-2 rounded-full bg-yellow-300 animate-pulse" />
-          <div className="w-2 h-2 rounded-full bg-pink-300 animate-pulse delay-100" />
-          <div className="w-2 h-2 rounded-full bg-blue-300 animate-pulse delay-200" />
-        </div>
+        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/55 to-transparent" />
+        <span className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-xs font-bold text-[#2d2822] shadow-sm backdrop-blur">
+          <Box className="size-3.5 text-[#3559e8]" />
+          可互动 3D
+        </span>
+        <span className="absolute right-4 top-4 grid size-9 place-items-center rounded-full bg-black/30 text-white opacity-0 backdrop-blur transition group-hover:opacity-100">
+          <Move3D className="size-4" />
+        </span>
       </div>
-    </div>
+      <div className="flex items-center justify-between gap-3 px-5 py-4">
+        <div className="min-w-0">
+          <h3 className="truncate text-lg font-black text-[#2d2822]">{artwork.title}</h3>
+          <p className="mt-1 text-sm text-[#756b60]">创作者 · {artwork.author}</p>
+        </div>
+        <span className="grid size-10 shrink-0 place-items-center rounded-2xl bg-[#e8edff] text-[#3559e8]">
+          <Box className="size-5" />
+        </span>
+      </div>
+    </article>
   );
 }

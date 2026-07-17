@@ -11,3 +11,14 @@ export interface Artwork {
 }
 
 export type ArtworkConfig = Artwork[];
+
+export type CreativeCategory = 'collage-poetry' | 'paper-cutting';
+
+export interface CreativeWork {
+  id: string;
+  category: CreativeCategory;
+  author: string;
+  title: string;
+  imageUrl: string;
+  createdAt: string;
+}
