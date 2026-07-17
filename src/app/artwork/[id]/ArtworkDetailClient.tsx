@@ -32,7 +32,7 @@ export default function ArtworkDetailClient({ artworkId }: { artworkId: number }
   const share = async () => {
     const url = window.location.href;
     if (navigator.share) {
-      try { await navigator.share({ title: `${artwork?.author} · ${artwork?.title}`, text: '看看这件童创艺境的 3D 作品', url }); return; } catch { return; }
+      try { await navigator.share({ title: `${artwork?.author} · ${artwork?.title}`, text: '看看这件数创艺境的 3D 作品', url }); return; } catch { return; }
     }
     await navigator.clipboard.writeText(url);
     setShared(true);
@@ -58,14 +58,14 @@ export default function ArtworkDetailClient({ artworkId }: { artworkId: number }
           <div className="max-w-sm rounded-2xl border border-slate-900/8 bg-white/80 p-4 text-sm leading-6 text-slate-500 shadow-sm"><strong className="text-slate-900">怎么玩：</strong>拖动旋转，滚轮或双指缩放，右键或双指平移。</div>
         </div>
 
-        <section className="relative aspect-[4/5] min-h-[400px] overflow-hidden rounded-[2rem] border border-slate-900/10 bg-[#E9EEFF] shadow-[0_30px_90px_rgba(39,58,130,.16)] sm:aspect-[4/3] lg:aspect-[16/9]">
+        <section className="tech-panel scan-accent relative aspect-[4/5] min-h-[400px] overflow-hidden rounded-[2rem] bg-[#E9EEFF] shadow-[0_30px_90px_rgba(39,58,130,.16),0_0_50px_rgba(78,107,255,.12)] sm:aspect-[4/3] lg:aspect-[16/9]">
           <ModelViewer modelUrl={artwork.modelFile} />
           <Button variant="outline" size="icon" onClick={() => window.location.reload()} aria-label="重新加载模型" className="absolute right-4 top-4 z-20 rounded-full border-white/70 bg-white/85 shadow-sm backdrop-blur"><RotateCcw className="size-4" /></Button>
         </section>
 
         <section className="mt-7 grid gap-4 sm:grid-cols-2">
           <div className="museum-panel p-6"><p className="font-mono text-[10px] font-black uppercase tracking-[.16em] text-[#4E6BFF]">Artwork</p><h2 className="mt-3 text-2xl font-black">{artwork.title}</h2><p className="mt-2 text-sm text-slate-500">绘画立体区 · 可交互数字作品</p></div>
-          <div className="museum-panel p-6"><p className="font-mono text-[10px] font-black uppercase tracking-[.16em] text-[#4E6BFF]">Creator</p><h2 className="mt-3 text-2xl font-black">{artwork.author}</h2><p className="mt-2 text-sm text-slate-500">童创艺境参展创作者</p></div>
+          <div className="tech-panel rounded-[1.5rem] p-6"><p className="font-mono text-[10px] font-black uppercase tracking-[.16em] text-[#4E6BFF]">Creator</p><h2 className="mt-3 text-2xl font-black">{artwork.author}</h2><p className="mt-2 text-sm text-slate-500">数创艺境参展创作者</p></div>
         </section>
       </main>
     </div>

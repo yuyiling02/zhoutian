@@ -153,8 +153,9 @@ body {
 .museum-grid {
   background-color: #f7f7f4;
   background-image:
-    linear-gradient(rgba(15, 23, 42, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(15, 23, 42, 0.035) 1px, transparent 1px);
+    radial-gradient(circle at 72% 12%, rgba(78, 107, 255, 0.12), transparent 25rem),
+    linear-gradient(rgba(78, 107, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(78, 107, 255, 0.045) 1px, transparent 1px);
   background-size: 28px 28px;
 }
 
@@ -168,6 +169,60 @@ body {
   border: 1px solid rgba(15, 23, 42, 0.08);
   background: rgba(255, 255, 255, 0.86);
   box-shadow: 0 24px 70px rgba(15, 23, 42, 0.08);
+}
+
+.tech-panel {
+  position: relative;
+  border: 1px solid rgba(78, 107, 255, 0.16);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow:
+    0 24px 70px rgba(15, 23, 42, 0.08),
+    0 0 34px rgba(78, 107, 255, 0.07),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.7);
+}
+
+.tech-panel::before,
+.tech-panel::after {
+  content: '';
+  position: absolute;
+  z-index: 2;
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+}
+
+.tech-panel::before {
+  left: 12px;
+  top: 12px;
+  border-left: 1px solid #4e6bff;
+  border-top: 1px solid #4e6bff;
+}
+
+.tech-panel::after {
+  right: 12px;
+  bottom: 12px;
+  border-right: 1px solid #4e6bff;
+  border-bottom: 1px solid #4e6bff;
+}
+
+@keyframes scan-accent {
+  0%, 70%, 100% { transform: translateX(-110%); opacity: 0; }
+  78% { opacity: .45; }
+  95% { transform: translateX(110%); opacity: 0; }
+}
+
+.scan-accent {
+  position: relative;
+  overflow: hidden;
+}
+
+.scan-accent::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent 40%, rgba(167, 190, 255, .18), transparent 60%);
+  animation: scan-accent 7s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -57,22 +57,23 @@ export default function Home() {
       <MuseumHeader />
 
       <main>
-        <section className="relative mx-auto max-w-7xl px-4 pb-12 pt-14 sm:px-6 sm:pb-16 sm:pt-20 lg:px-8 lg:pt-24">
-          <div className="pointer-events-none absolute right-[-7rem] top-10 size-72 rounded-full border-[48px] border-[#E9EEFF]/75 sm:size-96" />
+        <section className="scan-accent relative mx-auto max-w-7xl px-4 pb-12 pt-14 sm:px-6 sm:pb-16 sm:pt-20 lg:px-8 lg:pt-24">
+          <div className="pointer-events-none absolute right-[-7rem] top-10 size-72 rounded-full border-[48px] border-[#E9EEFF]/65 shadow-[0_0_80px_rgba(78,107,255,.2)] sm:size-96" />
+          <span className="pointer-events-none absolute left-5 top-7 font-mono text-[9px] font-bold tracking-[.16em] text-[#4E6BFF]/55 sm:left-7">N 31.2304° · E 121.4737°</span>
           <div className="relative grid items-end gap-10 lg:grid-cols-[1.28fr_.72fr]">
             <div>
               <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-slate-900/10 bg-white/80 px-4 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-slate-600 shadow-sm">
                 <span className="size-2 rounded-full bg-[#4E6BFF]" />
-                Student creativity exhibition · 2026
+                DIGITAL CREATIVE GALLERY · 2026
               </div>
               <h1 className="max-w-4xl text-5xl font-black leading-[.98] tracking-[-0.06em] sm:text-7xl lg:text-[5.7rem]">
-                小小创作者的
-                <span className="mt-2 block text-[#4E6BFF]">未来美术馆</span>
+                数创艺境
+                <span className="mt-3 block text-xl font-bold tracking-[.18em] text-slate-500 sm:text-2xl lg:text-3xl">数智课堂创意作品平台</span>
               </h1>
             </div>
             <div className="relative pb-1 lg:pb-3">
               <p className="max-w-xl text-base font-medium leading-8 text-slate-600 sm:text-lg">
-                让立体、文字与纸张成为想象力的三种入口。每一件作品，都是孩子对未来独一无二的回答。
+                让绘画在数字空间中立体生长，让文字与纸张成为想象力的新入口。每一件作品，都是孩子对未来独一无二的回答。
               </p>
               <a href="#zones" className="mt-7 inline-flex items-center gap-3 text-sm font-black text-slate-900">
                 选择一个展区
@@ -90,7 +91,7 @@ export default function Home() {
                 key={zone.id}
                 type="button"
                 onClick={() => selectZone(zone.id)}
-                className={`group relative min-h-64 overflow-hidden rounded-[2rem] border p-6 text-left outline-none transition duration-300 sm:min-h-72
+                className={`tech-panel group relative min-h-64 overflow-hidden rounded-[2rem] border p-6 text-left outline-none transition duration-300 sm:min-h-72
                   ${active ? '-translate-y-1 shadow-[0_24px_70px_rgba(15,23,42,.18)]' : 'border-slate-900/8 bg-white/80 hover:-translate-y-1 hover:border-slate-900/15 hover:bg-white'}
                   focus-visible:ring-4 focus-visible:ring-slate-950/15`}
                 style={active ? { backgroundColor: zone.color, color: zone.foreground, borderColor: zone.color } : undefined}
@@ -115,7 +116,7 @@ export default function Home() {
           })}
         </section>
 
-        <section id="gallery" className="scroll-mt-20 border-t border-slate-900/8 bg-white/65">
+        <section id="gallery" className="scroll-mt-20 border-t border-[#4E6BFF]/10 bg-white/65">
           <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
             <div className="flex flex-col justify-between gap-8 md:flex-row md:items-end">
               <div>
@@ -154,7 +155,7 @@ export default function Home() {
 
       <footer className="border-t border-white/10 bg-slate-950 px-4 py-9 text-white">
         <div className="mx-auto flex max-w-7xl flex-col justify-between gap-4 sm:flex-row sm:items-center">
-          <div className="flex items-center gap-3"><Sparkles className="size-5 text-[#F5B82E]" /><p className="font-black">童创艺境 · 学生创意作品展</p></div>
+          <div className="flex items-center gap-3"><Sparkles className="size-5 text-[#4E6BFF]" /><div><p className="font-black">数创艺境</p><p className="mt-0.5 text-xs text-white/45">数智课堂创意作品平台</p></div></div>
           <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-white/45">Make · Imagine · Share</p>
         </div>
       </footer>
