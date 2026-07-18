@@ -77,6 +77,7 @@ export function ModelViewer({ modelUrl }: ModelViewerProps) {
       antialias: qualitySettings.antialias,
       alpha: true,
       powerPreference: isMobile ? 'low-power' : 'default',
+      precision: isMobile ? 'mediump' : 'highp',
     });
     renderer.setSize(width, height);
     renderer.setPixelRatio(qualitySettings.pixelRatio);
@@ -89,10 +90,13 @@ export function ModelViewer({ modelUrl }: ModelViewerProps) {
     container.appendChild(renderer.domElement);
     rendererRef.current = renderer;
     
-    const pmremGenerator = new THREE.PMREMGenerator(renderer);
-    const envMap = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
-    pmremGenerator.dispose();
-    scene.environment = envMap;
+    let environmentTexture: THREE.Texture | null = null;
+    if (!isMobile) {
+      const pmremGenerator = new THREE.PMREMGenerator(renderer);
+      environmentTexture = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
+      pmremGenerator.dispose();
+      scene.environment = environmentTexture;
+    }
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
@@ -175,6 +179,7 @@ export function ModelViewer({ modelUrl }: ModelViewerProps) {
       const handleLoadError = (loadError: unknown) => {
         if (cancelled) return;
         console.error('Error loading model:', loadError);
+        releaseModelFile(modelUrl);
         const isStaleBlob = modelUrl.startsWith('blob:');
         setError(isStaleBlob ? '模型文件尚未完成上传，请稍后刷新页面重试' : '模型加载失败，请检查文件是否存在');
         setLoading(false);
@@ -194,7 +199,7 @@ export function ModelViewer({ modelUrl }: ModelViewerProps) {
           const model = gltf.scene;
           setupModel(model);
           
-          modelCache.set(modelUrl, model.clone());
+          if (!isMobile) modelCache.set(modelUrl, model.clone());
           
           scene.add(model);
           modelRef.current = model;
@@ -250,6 +255,8 @@ export function ModelViewer({ modelUrl }: ModelViewerProps) {
       if (sceneRef.current) {
         sceneRef.current.clear();
       }
+
+      environmentTexture?.dispose();
     };
   }, [modelUrl]);
 

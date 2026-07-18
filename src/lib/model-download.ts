@@ -8,8 +8,6 @@ interface DownloadTask {
 }
 
 const downloadTasks = new Map<string, DownloadTask>();
-const downloadChunkSize = 4 * 1024 * 1024;
-const maxChunkAttempts = 3;
 
 export function preloadModelFile(url: string): Promise<ArrayBuffer> {
   return getDownloadTask(url).promise;
@@ -66,119 +64,41 @@ async function downloadModel(
   url: string,
   onProgress: ProgressListener,
 ): Promise<ArrayBuffer> {
-  const total = await getModelSize(url);
-
-  if (total > downloadChunkSize) {
-    return downloadModelInChunks(url, total, onProgress);
-  }
-
-  const response = await fetch(url, { cache: 'force-cache' });
+  // 单次 GET 比多次缓存 Range 请求更适合移动端 Safari。Supabase/CDN 的
+  // HEAD 响应有时只报告部分长度，因此直接从实际下载响应读取文件大小。
+  const response = await fetch(url, { cache: 'no-store' });
   if (!response.ok) {
     throw new Error(`模型下载失败：${response.status}`);
   }
 
-  const responseTotal = Number(response.headers.get('content-length')) || total;
-  if (!response.body) {
+  const responseTotal = Number(response.headers.get('content-length')) || 0;
+  if (!response.body || responseTotal <= 0) {
     const buffer = await response.arrayBuffer();
-    onProgress(buffer.byteLength, buffer.byteLength);
+    onProgress(buffer.byteLength, responseTotal || buffer.byteLength);
     return buffer;
   }
 
+  // 直接写入一个预分配缓冲区，在保留实时进度的同时避免“先存全部分片、
+  // 再复制合并”造成的双倍内存峰值。这对 25–36MB 的手机端 GLB 很关键。
   const reader = response.body.getReader();
-  const chunks: Uint8Array[] = [];
+  const merged = new Uint8Array(responseTotal);
   let loaded = 0;
 
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
-    chunks.push(value);
+    if (loaded + value.byteLength > merged.byteLength) {
+      throw new Error('模型文件大小与服务器响应不一致');
+    }
+    merged.set(value, loaded);
     loaded += value.byteLength;
     onProgress(loaded, responseTotal);
   }
 
-  const merged = new Uint8Array(loaded);
-  let offset = 0;
-  for (const chunk of chunks) {
-    merged.set(chunk, offset);
-    offset += chunk.byteLength;
+  if (loaded !== responseTotal) {
+    throw new Error(`模型下载不完整：${loaded}/${responseTotal}`);
   }
 
-  onProgress(loaded, responseTotal || loaded);
+  onProgress(loaded, responseTotal);
   return merged.buffer;
-}
-
-async function getModelSize(url: string): Promise<number> {
-  try {
-    const response = await fetch(url, {
-      method: 'HEAD',
-      cache: 'force-cache',
-    });
-    if (!response.ok) return 0;
-    return Number(response.headers.get('content-length')) || 0;
-  } catch {
-    return 0;
-  }
-}
-
-async function downloadModelInChunks(
-  url: string,
-  total: number,
-  onProgress: ProgressListener,
-): Promise<ArrayBuffer> {
-  const merged = new Uint8Array(total);
-  let loaded = 0;
-
-  for (let start = 0; start < total; start += downloadChunkSize) {
-    const end = Math.min(start + downloadChunkSize - 1, total - 1);
-    const chunk = await downloadChunk(url, start, end);
-
-    // 如果存储服务忽略 Range 并直接返回完整文件，也可以正常使用。
-    if (chunk.byteLength === total && start === 0) {
-      onProgress(total, total);
-      const fullFile = new ArrayBuffer(total);
-      new Uint8Array(fullFile).set(chunk);
-      return fullFile;
-    }
-
-    const expectedLength = end - start + 1;
-    if (chunk.byteLength !== expectedLength) {
-      throw new Error(`模型分块大小异常：${chunk.byteLength}/${expectedLength}`);
-    }
-
-    merged.set(chunk, start);
-    loaded += chunk.byteLength;
-    onProgress(loaded, total);
-  }
-
-  return merged.buffer;
-}
-
-async function downloadChunk(url: string, start: number, end: number): Promise<Uint8Array> {
-  let lastError: unknown;
-
-  for (let attempt = 1; attempt <= maxChunkAttempts; attempt++) {
-    try {
-      const response = await fetch(url, {
-        cache: 'force-cache',
-        headers: { Range: `bytes=${start}-${end}` },
-      });
-
-      if (!response.ok) {
-        throw new Error(`模型分块下载失败：${response.status}`);
-      }
-
-      return new Uint8Array(await response.arrayBuffer());
-    } catch (error: unknown) {
-      lastError = error;
-      if (attempt < maxChunkAttempts) {
-        await wait(attempt * 1000);
-      }
-    }
-  }
-
-  throw lastError instanceof Error ? lastError : new Error('模型分块下载失败');
-}
-
-function wait(milliseconds: number): Promise<void> {
-  return new Promise((resolve) => globalThis.setTimeout(resolve, milliseconds));
 }
