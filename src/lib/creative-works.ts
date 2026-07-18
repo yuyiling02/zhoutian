@@ -1,4 +1,5 @@
 import type { CreativeCategory, CreativeWork } from './types';
+import { dedupeCreativeWorks } from './creative-work-order';
 
 const creativeWorksUrl =
   'https://wqpmslbgntcifjzksbxl.supabase.co/storage/v1/object/public/artworks/settings/creative-works.json';
@@ -10,7 +11,7 @@ export async function fetchCreativeWorks(): Promise<CreativeWork[]> {
 
   const value: unknown = await response.json();
   if (!Array.isArray(value)) return [];
-  return value.filter(isCreativeWork);
+  return dedupeCreativeWorks(value.filter(isCreativeWork));
 }
 
 export function categoryLabel(category: CreativeCategory): string {

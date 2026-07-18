@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { artworkOrderFilePath, fetchArtworkOrder, sortArtworksByOrder } from './artwork-order';
+import { dedupeCreativeWorks } from './creative-work-order';
 import type { CreativeWork } from './types';
 
 const supabaseProjectId = 'wqpmslbgntcifjzksbxl';
@@ -163,7 +164,7 @@ export async function uploadFile(
 /** 保存拼贴诗与剪纸展区的作品清单 */
 export async function saveCreativeWorks(works: CreativeWork[]): Promise<void> {
   const filePath = 'settings/creative-works.json';
-  const file = new Blob([JSON.stringify(works)], { type: 'application/json' });
+  const file = new Blob([JSON.stringify(dedupeCreativeWorks(works))], { type: 'application/json' });
   const { error: removeError } = await supabase.storage.from('artworks').remove([filePath]);
   if (removeError) throw removeError;
 
