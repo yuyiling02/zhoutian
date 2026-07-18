@@ -59,8 +59,8 @@ export function ModelViewer({ modelUrl }: ModelViewerProps) {
     const ctx = canvas.getContext('2d');
     if (ctx) {
       const gradient = ctx.createLinearGradient(0, 0, 0, 512);
-      gradient.addColorStop(0, '#F8FAFF');
-      gradient.addColorStop(1, '#E9EEFF');
+      gradient.addColorStop(0, '#FFFDF8');
+      gradient.addColorStop(1, '#E9EDFF');
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, 2, 512);
     }
@@ -258,15 +258,15 @@ export function ModelViewer({ modelUrl }: ModelViewerProps) {
       <div ref={containerRef} className="w-full h-full" />
       
       {loading && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#E9EEFF]">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#E9EDFF]">
           <div className="relative mb-6">
-            <Spinner className="size-12 text-[#4E6BFF]" />
-            <Sparkles className="absolute -right-1 -top-1 size-6 animate-pulse text-[#4E6BFF]" />
+            <Spinner className="size-12 text-[#3C5CFF]" />
+            <Sparkles className="absolute -right-1 -top-1 size-6 animate-pulse text-[#E83E6F]" />
           </div>
           <p className="mb-4 text-sm font-bold text-slate-600">正在加载 3D 模型…</p>
           <div className="w-48 h-2 bg-white/50 rounded-full overflow-hidden">
             <div 
-              className="h-full rounded-full bg-[#4E6BFF] transition-all duration-300"
+              className="h-full rounded-full bg-[#3C5CFF] transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -275,9 +275,9 @@ export function ModelViewer({ modelUrl }: ModelViewerProps) {
       )}
       
       {error && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#E9EEFF]">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#E9EDFF]">
           <div className="text-center px-6">
-            <Sparkles className="size-12 text-[#718096] mx-auto mb-4" />
+            <Sparkles className="size-12 text-[#E83E6F] mx-auto mb-4" />
             <p className="text-[#2D3748] font-semibold">{error}</p>
             <p className="text-sm text-[#718096] mt-3">
               请确认 GLB 文件已完整上传，稍后刷新重试。
@@ -291,7 +291,7 @@ export function ModelViewer({ modelUrl }: ModelViewerProps) {
           <div className="inline-flex items-center gap-2 px-4 py-2 
             bg-white/80 backdrop-blur-sm rounded-2xl
             text-xs text-[#718096] shadow-lg border border-white/30">
-            <Sparkles className="size-3 text-[#4E6BFF]" />
+            <Sparkles className="size-3 text-[#3C5CFF]" />
             拖动旋转 · 双指缩放 · 双指平移
           </div>
         </div>

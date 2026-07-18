@@ -13,14 +13,7 @@ export default function ArtworkQueryClient() {
 
   if (artworkId === null) {
     return (
-      <div
-        className="flex min-h-screen items-center justify-center text-lg text-white"
-        style={{
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
-        }}
-      >
-        正在加载作品...
-      </div>
+      <div className="museum-grid flex min-h-screen items-center justify-center text-lg font-black text-[#3C5CFF]">正在加载作品…</div>
     );
   }
 

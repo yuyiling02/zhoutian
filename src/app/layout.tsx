@@ -18,13 +18,13 @@ export const metadata: Metadata = {
     siteName: '数创艺境',
     locale: 'zh_CN',
     type: 'website',
-    images: [{ url: '/og.png', width: 1672, height: 941, alt: '数创艺境数智课堂创意作品平台' }],
+    images: [{ url: '/og-v2.png', width: 1672, height: 941, alt: '数创艺境数智课堂创意作品平台' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: '数创艺境｜数智课堂创意作品平台',
     description: '三种材料，三种表达，同一份想象力。',
-    images: ['/og.png'],
+    images: ['/og-v2.png'],
   },
   robots: {
     index: true,

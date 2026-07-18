@@ -1,4 +1,4 @@
-import { Box, Layers3, Scissors } from 'lucide-react';
+import { BookOpenText, Palette, Scissors } from 'lucide-react';
 import type { ZoneIconName } from '@/lib/zones';
 
 interface ZoneIconProps {
@@ -7,7 +7,7 @@ interface ZoneIconProps {
 }
 
 export function ZoneIcon({ name, className }: ZoneIconProps) {
-  if (name === 'collage') return <Layers3 className={className} />;
+  if (name === 'poetry') return <BookOpenText className={className} />;
   if (name === 'scissors') return <Scissors className={className} />;
-  return <Box className={className} />;
+  return <Palette className={className} />;
 }
