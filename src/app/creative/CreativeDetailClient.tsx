@@ -34,7 +34,7 @@ export default function CreativeDetailClient() {
   const share = async () => {
     const url = window.location.href;
     if (navigator.share) {
-      try { await navigator.share({ title: `${work.author} · ${work.title || '无题作品'}`, text: `看看数创艺境的${zone.title}作品`, url }); return; } catch { return; }
+      try { await navigator.share({ title: `${work.author || '未署名'} · ${work.title || '无题作品'}`, text: `看看数创艺境的${zone.title}作品`, url }); return; } catch { return; }
     }
     await navigator.clipboard.writeText(url);
     setShared(true);
@@ -55,17 +55,17 @@ export default function CreativeDetailClient() {
         <div className="mb-7">
           <div className="zone-pill mb-4 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-black"><ZoneIcon name={zone.icon} className="size-4" />{zone.title}</div>
           <h1 className="text-4xl font-black tracking-[-.055em] sm:text-6xl">{work.title || '无题作品'}</h1>
-          <p className="mt-3 text-base font-medium text-slate-500">创作者 · <span className="font-black text-[#172033]">{work.author}</span></p>
+          <p className="mt-3 text-base font-medium text-slate-500">创作者 · <span className="font-black text-[#172033]">{work.author || '未署名'}</span></p>
         </div>
 
         <section className="detail-stage relative overflow-hidden rounded-[2rem] p-2 sm:p-4">
-          <div className="relative min-h-[60vh] w-full overflow-hidden rounded-[1.5rem]" style={{ backgroundColor: zone.softColor }}><Image src={work.imageUrl} alt={work.title || `${work.author}的作品`} fill priority sizes="100vw" className="object-contain" /></div>
+          <div className="relative min-h-[60vh] w-full overflow-hidden rounded-[1.5rem]" style={{ backgroundColor: zone.softColor }}><Image src={work.imageUrl} alt={work.title || (work.author ? `${work.author}的作品` : '未命名作品')} fill priority sizes="100vw" className="object-contain" /></div>
           <span className="absolute bottom-5 left-5 rounded-full bg-white/90 px-3 py-1.5 text-[10px] font-black uppercase tracking-[.13em] shadow-sm backdrop-blur" style={{ color: zone.color }}>Original work · {zone.number}</span>
         </section>
 
         <section className="mt-7 grid gap-4 sm:grid-cols-2">
           <div className="museum-panel p-6"><p className="text-[10px] font-black uppercase tracking-[.16em]" style={{ color: zone.color }}>The artwork</p><h2 className="mt-3 text-2xl font-black">{work.title || '无题作品'}</h2><p className="mt-2 text-sm text-slate-500">{zone.title} · 图片作品</p></div>
-          <div className="museum-panel p-6"><p className="text-[10px] font-black uppercase tracking-[.16em] text-[#3C5CFF]">The creator</p><h2 className="mt-3 text-2xl font-black">{work.author}</h2><p className="mt-2 text-sm text-slate-500">数创艺境参展创作者</p></div>
+          <div className="museum-panel p-6"><p className="text-[10px] font-black uppercase tracking-[.16em] text-[#3C5CFF]">The creator</p><h2 className="mt-3 text-2xl font-black">{work.author || '未署名'}</h2><p className="mt-2 text-sm text-slate-500">数创艺境参展创作者</p></div>
         </section>
       </main>
     </div>

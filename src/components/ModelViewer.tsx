@@ -40,10 +40,10 @@ export function ModelViewer({ modelUrl }: ModelViewerProps) {
     const isMobile = window.innerWidth < 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
     const qualitySettings = isMobile ? {
-      pixelRatio: Math.min(window.devicePixelRatio, 1.5),
+      pixelRatio: Math.min(window.devicePixelRatio, 1.75),
       shadowMapSize: 512,
       enableShadows: false,
-      antialias: false,
+      antialias: true,
     } : {
       pixelRatio: Math.min(window.devicePixelRatio, 2),
       shadowMapSize: 1024,
@@ -76,14 +76,14 @@ export function ModelViewer({ modelUrl }: ModelViewerProps) {
     const renderer = new THREE.WebGLRenderer({
       antialias: qualitySettings.antialias,
       alpha: true,
-      powerPreference: isMobile ? 'low-power' : 'default',
-      precision: isMobile ? 'mediump' : 'highp',
+      powerPreference: 'high-performance',
+      precision: 'highp',
     });
     renderer.setSize(width, height);
     renderer.setPixelRatio(qualitySettings.pixelRatio);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.0;
+    renderer.toneMappingExposure = isMobile ? 1.28 : 1.12;
     renderer.shadowMap.enabled = qualitySettings.enableShadows;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.shadowMap.autoUpdate = false;
@@ -91,12 +91,11 @@ export function ModelViewer({ modelUrl }: ModelViewerProps) {
     rendererRef.current = renderer;
     
     let environmentTexture: THREE.Texture | null = null;
-    if (!isMobile) {
-      const pmremGenerator = new THREE.PMREMGenerator(renderer);
-      environmentTexture = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
-      pmremGenerator.dispose();
-      scene.environment = environmentTexture;
-    }
+    const pmremGenerator = new THREE.PMREMGenerator(renderer);
+    environmentTexture = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
+    pmremGenerator.dispose();
+    scene.environment = environmentTexture;
+    scene.environmentIntensity = isMobile ? 1.15 : 1;
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
@@ -111,10 +110,13 @@ export function ModelViewer({ modelUrl }: ModelViewerProps) {
     };
     controlsRef.current = controls;
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+    const ambientLight = new THREE.AmbientLight(0xffffff, isMobile ? 1.05 : 0.8);
     scene.add(ambientLight);
 
-    const directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.9);
+    const hemisphereLight = new THREE.HemisphereLight(0xfff8ee, 0xc7d2fe, isMobile ? 0.75 : 0.5);
+    scene.add(hemisphereLight);
+
+    const directionalLight1 = new THREE.DirectionalLight(0xffffff, isMobile ? 1.15 : 0.95);
     directionalLight1.position.set(5, 10, 7.5);
     directionalLight1.castShadow = qualitySettings.enableShadows;
     if (qualitySettings.enableShadows) {
@@ -125,7 +127,7 @@ export function ModelViewer({ modelUrl }: ModelViewerProps) {
     }
     scene.add(directionalLight1);
 
-    const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
+    const directionalLight2 = new THREE.DirectionalLight(0xffffff, isMobile ? 0.7 : 0.55);
     directionalLight2.position.set(-5, 10, -7.5);
     directionalLight2.castShadow = false;
     scene.add(directionalLight2);
@@ -143,25 +145,22 @@ export function ModelViewer({ modelUrl }: ModelViewerProps) {
       model.position.y = -center.y * scale;
       model.position.z = -center.z * scale;
       
-      if (!isMobile) {
-        const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
-        model.traverse((child) => {
-          if (child instanceof THREE.Mesh && child.material instanceof THREE.Material) {
-            child.castShadow = qualitySettings.enableShadows;
-            child.receiveShadow = qualitySettings.enableShadows;
-            
-            if (child.material instanceof THREE.MeshStandardMaterial || 
-                child.material instanceof THREE.MeshPhysicalMaterial) {
-              const mat = child.material;
-              if (mat.map) mat.map.anisotropy = maxAnisotropy;
-              if (mat.normalMap) mat.normalMap.anisotropy = maxAnisotropy;
-              if (mat.roughnessMap) mat.roughnessMap.anisotropy = maxAnisotropy;
-              if (mat.metalnessMap) mat.metalnessMap.anisotropy = maxAnisotropy;
-              if (mat.aoMap) mat.aoMap.anisotropy = maxAnisotropy;
-            }
+      const maxAnisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), isMobile ? 4 : 16);
+      model.traverse((child) => {
+        if (child instanceof THREE.Mesh && child.material instanceof THREE.Material) {
+          child.castShadow = qualitySettings.enableShadows;
+          child.receiveShadow = qualitySettings.enableShadows;
+          if (child.material instanceof THREE.MeshStandardMaterial ||
+              child.material instanceof THREE.MeshPhysicalMaterial) {
+            const mat = child.material;
+            if (mat.map) mat.map.anisotropy = maxAnisotropy;
+            if (mat.normalMap) mat.normalMap.anisotropy = maxAnisotropy;
+            if (mat.roughnessMap) mat.roughnessMap.anisotropy = maxAnisotropy;
+            if (mat.metalnessMap) mat.metalnessMap.anisotropy = maxAnisotropy;
+            if (mat.aoMap) mat.aoMap.anisotropy = maxAnisotropy;
           }
-        });
-      }
+        }
+      });
       
       return model;
     };
@@ -257,6 +256,7 @@ export function ModelViewer({ modelUrl }: ModelViewerProps) {
       }
 
       environmentTexture?.dispose();
+      gradientTexture.dispose();
     };
   }, [modelUrl]);
 

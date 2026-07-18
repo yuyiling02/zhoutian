@@ -66,7 +66,8 @@ async function downloadModel(
 ): Promise<ArrayBuffer> {
   // 单次 GET 比多次缓存 Range 请求更适合移动端 Safari。Supabase/CDN 的
   // HEAD 响应有时只报告部分长度，因此直接从实际下载响应读取文件大小。
-  const response = await fetch(url, { cache: 'no-store' });
+  // 允许浏览器复用已经完整下载的 GLB；首次仍会从网络获取，重复打开会快很多。
+  const response = await fetch(url, { cache: 'default' });
   if (!response.ok) {
     throw new Error(`模型下载失败：${response.status}`);
   }
