@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { Spinner } from '@/components/ui/spinner';
@@ -33,7 +32,6 @@ export function ModelViewer({ modelUrl }: ModelViewerProps) {
     if (!containerRef.current) return;
 
     let cancelled = false;
-    let dracoLoader: DRACOLoader | null = null;
 
     const container = containerRef.current;
     const width = container.clientWidth;
@@ -178,10 +176,6 @@ export function ModelViewer({ modelUrl }: ModelViewerProps) {
       setError(null);
     } else {
       const loader = new GLTFLoader();
-      dracoLoader = new DRACOLoader();
-      dracoLoader.setDecoderPath('/draco/');
-      dracoLoader.setDecoderConfig({ type: 'wasm' });
-      loader.setDRACOLoader(dracoLoader);
       const handleLoadError = (loadError: unknown) => {
         if (cancelled) return;
         console.error('Error loading model:', loadError);
@@ -263,7 +257,6 @@ export function ModelViewer({ modelUrl }: ModelViewerProps) {
       }
 
       environmentTexture?.dispose();
-      dracoLoader?.dispose();
     };
   }, [modelUrl]);
 
